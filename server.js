@@ -2,18 +2,18 @@ const express = require('express');
 const graphqlHTTP = require('express-graphql');
 const bodyParser = require('body-parser');
 
-// import Schema from './server/schema.js';
+const Schema = require('./server/schema.js');
 
 const app = express();
 
 app.use(bodyParser());
 app.use(express.static(__dirname + '/src'));
 
-// app.use('/graphql', graphqlHTTP ((req) => ({
-//   schema: Schema,
-//   rootValue: 'rootValue',
-//   graphiql: true
-// })));
+app.use('/graphql', graphqlHTTP ((req) => ({
+  schema: Schema,
+  rootValue: 'rootValue',
+  graphiql: true
+})));
 
 const PORT = 3000;
 
