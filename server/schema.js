@@ -1,48 +1,65 @@
-// This is the Dataset in our blog
 import PostsList from './data/posts';
-import AuthorsList from './data/authors';
-import {CommentList, ReplyList} from './data/comments';
+import UsersList from './data/users';
+import CommentsList from './data/comments';
 
 import {
-  // These are the basic GraphQL types
   GraphQLInt,
   GraphQLFloat,
   GraphQLString,
   GraphQLList,
   GraphQLObjectType,
   GraphQLEnumType,
-
-  // This is used to create required fileds and arguments
   GraphQLNonNull,
-
-  // This is the class we need to create the schema
   GraphQLSchema,
 } from 'graphql';
 
-/**
-  DEFINE YOUR TYPES BELOW
-**/
-
-const Author = new GraphQLObjectType({
-  name: 'Author',
-  description: 'This represent an author',
+const User = new GraphQLObjectType({
+  name: 'user',
   fields: () => ({
-    _id: {type: new GraphQLNonNull(GraphQLString)},
-    name: {type: GraphQLString}
+    _id: {type: new GraphQLNonNull(GraphQLInt)},
+    username: {type: new GraphQLNonNull(GraphQLString)},
+    profilePic: {type: GraphQLString},
+  })
+});
+
+const Comment = new GraphQLObjectType({
+  name: 'comment',
+  fields: () => ({
+    _id: {type: new GraphQLNonNull(GraphQLInt)},
+    content: {type: new GraphQLNonNull(GraphQLString)},
+    user: {
+      type: User,
+      resolve: function({user}) {
+        for (let i = 0; i < UsersList.length; i += 1) {
+          if (UsersList[i].username === user) return UsersList[i];
+        }
+      }
+    } 
   })
 });
 
 const Post = new GraphQLObjectType({
-  name: 'Post',
-  description: 'This represent a Post',
+  name: 'post',
   fields: () => ({
-    _id: {type: new GraphQLNonNull(GraphQLString)},
-    title: {type: new GraphQLNonNull(GraphQLString)},
-    content: {type: GraphQLString},
-    author: {
-      type: Author,
-      resolve: function(post) {
-        return _.find(AuthorsList, a => a._id == post.author);
+    _id: {type: new GraphQLNonNull(GraphQLInt)},
+    image: {type: new GraphQLNonNull(GraphQLString)},
+    caption: {type: GraphQLString},
+    user: {
+      type: new GraphQLNonNull(User),
+      resolve: function({user}) {
+        for (let i = 0; i < UsersList.length; i += 1) {
+          if (UsersList[i].username === user) return UsersList[i];
+        }
+      }
+    },
+    comments: {
+      type: new GraphQLList(Comment),
+      resolve: function({comments}) {
+        const output = [];
+        for (let i = 0; i < comments.length; i += 1) {
+          output.push(CommentsList[comments[i]]);
+        }
+        return output;
       }
     }
   })
@@ -50,23 +67,13 @@ const Post = new GraphQLObjectType({
 
 // This is the Root Query
 const Query = new GraphQLObjectType({
-  name: 'BlogSchema',
-  description: 'Root of the Blog Schema',
+  name: 'InstaSchema',
+  description: 'Root of the Instagram Schema',
   fields: () => ({
     posts: {
       type: new GraphQLList(Post),
       resolve: function() {
         return PostsList;
-      }
-    },
-    echo: {
-      type: GraphQLString,
-      description: 'Echo what you enter',
-      args: {
-        message: {type: GraphQLString}
-      },
-      resolve: function(source, {message}) {
-        return {aa: 10};
       }
     }
   })
